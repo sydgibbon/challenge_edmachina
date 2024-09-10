@@ -1,0 +1,28 @@
+services:
+  fastapi:
+    environment:
+      DATABASE_URL: postgresql://user:password@db/edmachina_challenge
+    build: ./fastapi
+    ports:
+     - "8000:8000"
+    depends_on:
+     - db
+    restart: 'always'
+    
+  react:
+    restart: 'always'
+    build: ./react
+    ports:
+      - "3000:3000"
+    depends_on:
+      - fastapi
+
+  db:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: edmachina_challenge
+    ports:
+      - "5432:5432"
+    restart: 'always'
