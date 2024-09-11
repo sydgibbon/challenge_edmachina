@@ -10,6 +10,8 @@ services:
     restart: 'always'
     
   react:
+    environment:
+      API_URL: fastapi
     restart: 'always'
     build: ./react
     ports:
