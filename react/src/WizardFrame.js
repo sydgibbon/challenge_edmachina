@@ -28,7 +28,7 @@ const StyledAppBar = styled(AppBar)(({ theme }) => ({
   flex: '0 0 auto',
 }));
 
-function LeadFormFrame({
+function WizardFrame({
   showCustomTheme,
   toggleCustomTheme,
   mode,
@@ -57,17 +57,17 @@ function LeadFormFrame({
             <Button
               variant="text"
               size="small"
-              aria-label="Back to GitHub/sydgibbon"
+              aria-label="GitHub/sydgibbon"
               startIcon={<ArrowBackRoundedIcon />}
               component="a"
               href="https://github.com/sydgibbon"
               sx={{ display: { xs: 'none', sm: 'flex' } }}
             >
-              Back to GitHub/sydgibbon
+              GitHub/sydgibbon
             </Button>
             <IconButton
               size="small"
-              aria-label="Back to GitHub/sydgibbon"
+              aria-label="GitHub/sydgibbon"
               component="a"
               href="https://github.com/sydgibbon"
               sx={{ display: { xs: 'auto', sm: 'none' } }}
@@ -102,7 +102,7 @@ function LeadFormFrame({
   );
 }
 
-LeadFormFrame.propTypes = {
+WizardFrame.propTypes = {
   children: PropTypes.node,
   mode: PropTypes.oneOf(['dark', 'light']).isRequired,
   showCustomTheme: PropTypes.bool.isRequired,
@@ -110,4 +110,4 @@ LeadFormFrame.propTypes = {
   toggleCustomTheme: PropTypes.func.isRequired,
 };
 
-export default LeadFormFrame;
+export default WizardFrame;

@@ -8,16 +8,20 @@ services:
     depends_on:
      - db
     restart: 'always'
+    networks:
+      - default
     
   react:
     environment:
-      API_URL: fastapi
+      REACT_APP_API_URL: http://localhost:8000
     restart: 'always'
     build: ./react
     ports:
       - "3000:3000"
     depends_on:
       - fastapi
+    networks:
+      - default
 
   db:
     image: postgres:13

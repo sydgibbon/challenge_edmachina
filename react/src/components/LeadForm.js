@@ -1,18 +1,20 @@
-import * as React from 'react';
-
-import Checkbox from '@mui/material/Checkbox';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import FormLabel from '@mui/material/FormLabel';
-import Grid from '@mui/material/Grid2';
-import OutlinedInput from '@mui/material/OutlinedInput';
-import { styled } from '@mui/system';
+import * as React from "react";
+import FormLabel from "@mui/material/FormLabel";
+import Grid from "@mui/material/Grid2";
+import OutlinedInput from "@mui/material/OutlinedInput";
+import { styled } from "@mui/system";
 
 const FormGrid = styled(Grid)(() => ({
-  display: 'flex',
-  flexDirection: 'column',
+  display: "flex",
+  flexDirection: "column",
 }));
 
-export default function LeadForm() {
+export default function LeadForm({leadData, setLeadData}) {
+  const handleChange = (event) => {
+    setLeadData(
+      {...leadData, [event.target.id]: event.target.value}
+    );
+  };
   return (
     <Grid container spacing={3}>
       <FormGrid size={{ xs: 12 }}>
@@ -20,27 +22,29 @@ export default function LeadForm() {
           Nombre Completo
         </FormLabel>
         <OutlinedInput
-          id="full_name"  
+          id="full_name"
           name="full_name"
           type="full_name"
           placeholder="Sydney Gibbon"
           autoComplete="shipping full-name"
           required
           size="small"
+          onChange={handleChange}
         />
       </FormGrid>
       <FormGrid size={{ xs: 12 }}>
-        <FormLabel htmlFor="address1" required>
+        <FormLabel htmlFor="address" required>
           Dirección
         </FormLabel>
         <OutlinedInput
-          id="address1"
-          name="address1"
-          type="address1"
+          id="address"
+          name="address"
+          type="address"
           placeholder="9 de Julio 832 9D"
           autoComplete="shipping address-line1"
           required
           size="small"
+          onChange={handleChange}
         />
       </FormGrid>
       <FormGrid size={{ xs: 12 }}>
@@ -55,6 +59,7 @@ export default function LeadForm() {
           autoComplete="shipping phone"
           required
           size="small"
+          onChange={handleChange}
         />
       </FormGrid>
       <FormGrid size={{ xs: 12 }}>
@@ -69,6 +74,7 @@ export default function LeadForm() {
           autoComplete="shipping email"
           required
           size="small"
+          onChange={handleChange}
         />
       </FormGrid>
     </Grid>

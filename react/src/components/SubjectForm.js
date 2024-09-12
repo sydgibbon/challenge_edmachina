@@ -1,50 +1,17 @@
 import * as React from "react";
-
+import { useEffect } from "react";
 import Box from "@mui/material/Box";
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
-import MuiCard from "@mui/material/Card";
 import FormLabel from "@mui/material/FormLabel";
 import OutlinedInput from "@mui/material/OutlinedInput";
 import Stack from "@mui/material/Stack";
 
 import { styled } from "@mui/material/styles";
+import { fetchSubjects, fetchCareers } from '../services/api';
 
 // import AddCircleRoundedIcon from "@mui/icons-material/AddCircleRounded";
 import SubjectRoundedIcon from "@mui/icons-material/SubjectRounded";
-
-const Card = styled(MuiCard)(({ theme }) => ({
-  border: "1px solid",
-  borderColor: theme.palette.divider,
-  width: "100%",
-  "&:hover": {
-    background:
-      "linear-gradient(to bottom right, hsla(210, 100%, 97%, 0.5) 25%, hsla(210, 100%, 90%, 0.3) 100%)",
-    borderColor: "primary.light",
-    boxShadow: "0px 2px 8px hsla(0, 0%, 0%, 0.1)",
-    ...theme.applyStyles("dark", {
-      background:
-        "linear-gradient(to right bottom, hsla(210, 100%, 12%, 0.2) 25%, hsla(210, 100%, 16%, 0.2) 100%)",
-      borderColor: "primary.dark",
-      boxShadow: "0px 1px 8px hsla(210, 100%, 25%, 0.5) ",
-    }),
-  },
-  [theme.breakpoints.up("md")]: {
-    flexGrow: 1,
-    maxWidth: `calc(50% - ${theme.spacing(1)})`,
-  },
-  variants: [
-    {
-      props: ({ selected }) => selected,
-      style: {
-        borderColor: theme.palette.primary.light,
-        ...theme.applyStyles("dark", {
-          borderColor: theme.palette.primary.dark,
-        }),
-      },
-    },
-  ],
-}));
 
 const SubjectContainer = styled("div")(({ theme }) => ({
   display: "flex",
@@ -71,72 +38,41 @@ const FormGrid = styled("div")(() => ({
   flexDirection: "column",
 }));
 
-export default function SubjectForm() {
-  const [career, setCareer] = React.useState(1);
-  const [careerList, setCareerList] = React.useState([
-    { id:1, name: "Jugador de LoL" },
-    { id:2, name: "Leñador de Bonsai" },
-  ]);
+export default function SubjectForm({leadData, setLeadData}) {
+  const [career, setCareer] = React.useState("");
+  const [careerList, setCareerList] = React.useState([]);
 
-  const [subject, setSubject] = React.useState("AddCircle");
-  const [subjectList, setSubjectList] = React.useState([
-    {
-      name: "Griefing 1",
-      course_duration: 20,
-      enrollment_year: 2020,
-      times_taken: 10,
-      career_id: 1,
-      id: 1,
-    },
-    {
-      name: "Flaming Avanzado",
-      course_duration: 30,
-      enrollment_year: 2023,
-      times_taken: 5,
-      career_id: 1,
-      id: 2,
-    },
-    {
-      name: "Micro/Macro para Bronces",
-      course_duration: 25,
-      enrollment_year: 2022,
-      times_taken: 8,
-      career_id: 1,
-      id: 3,
-    },
-    {
-      name: "Zen y el Arte del Bonsai",
-      course_duration: 15,
-      enrollment_year: 2021,
-      times_taken: 2,
-      career_id: 2,
-      id: 4,
-    },
-    {
-      name: "Desramado Extremo",
-      course_duration: 40,
-      enrollment_year: 2024,
-      times_taken: 1,
-      career_id: 2,
-      id: 5,
-    },
-  ]);
+  const [subject, setSubject] = React.useState("");
+  const [subjectEnabled, setSubjectEnabled] = React.useState(false);
+  const [subjectList, setSubjectList] = React.useState([]);
 
   const [timesTaken, setTimesTaken] = React.useState("");
   const [year, setYear] = React.useState("");
 
   const handleCareerChange = (event) => {
     setCareer(event.target.value);
+    getSubjects(event.target.value);
+    setSubjectEnabled(true);
+    setLeadData(
+      {...leadData, career_name: careerList.filter((career)=>career.id === event.target.value)[0].name}
+    );
+    
   };
 
   const handleSubjectChange = (event) => {
     setSubject(event.target.value);
+    setLeadData(
+      {...leadData, subject: subjectList.filter((subject)=>subject.id === event.target.value)[0]}
+    );
   };
 
   const handleTimesTakenChange = (event) => {
     const value = event.target.value.replace(/\D/g, "");
     if (value.length <= 2) {
       setTimesTaken(value);
+      setLeadData(
+        {...leadData, times_taken: event.target.value}
+      );
     }
   };
 
@@ -144,8 +80,32 @@ export default function SubjectForm() {
     const value = event.target.value.replace(/\D/g, "");
     if (value.length <= 4) {
       setYear(value);
+      setLeadData(
+        {...leadData, enrollment_year: event.target.value}
+      );
     }
   };
+
+  const getSubjects = async (careerId) => {
+    try {
+      const data = await fetchSubjects();
+      setSubjectList(data.filter((subject) => subject.career_id === careerId));
+    } catch (error) {
+      console.error('Failed to fetch subjects:', error);
+    }
+  };
+  
+  const getCareers = async () => {
+    try {
+      const data = await fetchCareers();
+      setCareerList(data);
+    } catch (error) {
+      console.error('Failed to fetch Careers:', error);
+    }
+  };
+  useEffect(() => {
+    getCareers();
+  }, []);
 
   return (
     <Stack spacing={{ xs: 3, sm: 6 }} useFlexGap>
@@ -163,8 +123,8 @@ export default function SubjectForm() {
             {/* Para cargar multiples materias coming soon  */}
           </Box>
           <Box sx={{ display: "flex", gap: 2 }}>
-            <FormGrid sx={{ flexGrow: 1 }}>
-              <FormLabel htmlFor="card-number" required>
+            <FormGrid sx={{ minWidth:'50%'}}>
+              <FormLabel htmlFor="career" required>
                 Carrera
               </FormLabel>
               <Select
@@ -173,37 +133,40 @@ export default function SubjectForm() {
                 id="theme-select"
                 value={career}
                 onChange={handleCareerChange}
+                required
               >
                 {careerList.map((career) => (
                   <MenuItem key={career.id} value={career.id}>{career.name}</MenuItem>
                 ))}
               </Select>
             </FormGrid>
-            <FormGrid sx={{ flexGrow: 1 }}>
+            <FormGrid sx={{ minWidth:'50%' }}>
               <FormLabel htmlFor="timesTaken" required>
                 Materia
               </FormLabel>
               <Select
+                disabled={!subjectEnabled}
                 size="small"
                 labelId="theme-select-label"
                 id="theme-select"
-                value={"Jugador de LoL"}
+                value={subject}
                 label="Design Language"
+                onChange={handleSubjectChange}
               >
                 {subjectList.map((subject) => (
-                  <MenuItem key={subject.name} value={subject.name}>{subject.name}</MenuItem>
+                  <MenuItem key={subject.id} value={subject.id}>{subject.name}</MenuItem>
                 ))}
               </Select>
             </FormGrid>
           </Box>
           <Box sx={{ display: "flex", gap: 2, marginTop: "10px" }}>
             <FormGrid sx={{ flexGrow: 1 }}>
-              <FormLabel htmlFor="card-name" required>
+              <FormLabel htmlFor="times-taken" required>
                 Veces cursada
               </FormLabel>
               <OutlinedInput
-                id="card-name"
-                autoComplete="card-name"
+                id="times-taken"
+                autoComplete="times-taken"
                 placeholder="5"
                 required
                 size="small"
@@ -212,12 +175,12 @@ export default function SubjectForm() {
               />
             </FormGrid>
             <FormGrid sx={{ flexGrow: 1 }}>
-              <FormLabel htmlFor="card-expiration" required>
+              <FormLabel htmlFor="enrollment-year" required>
                 Año de Inscripción
               </FormLabel>
               <OutlinedInput
-                id="card-expiration"
-                autoComplete="card-expiration"
+                id="enrollment-year"
+                autoComplete="enrollment-year"
                 placeholder="2020"
                 required
                 size="small"
