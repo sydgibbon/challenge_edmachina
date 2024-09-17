@@ -1,8 +1,9 @@
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
+from fastapi import HTTPException
 from app.core.dao import BaseDAO
 from app.leads.models import Lead, Subject, Career, LeadsSubjects
 from app.leads.dto import LeadDTO, SubjectDTO, CareerDTO, LeadsSubjectsDTO
-
 class LeadDAO(BaseDAO):
     def create_lead(self, db: Session, lead: LeadDTO):
         db_lead = Lead(
@@ -11,7 +12,19 @@ class LeadDAO(BaseDAO):
             address=lead.address,
             phone=lead.phone
         )
-        return self.insert(db, db_lead)
+        try:
+            return self.insert(db, db_lead)
+        except IntegrityError as e:
+            db.rollback()
+            if "duplicate key value violates unique constraint" in str(e.orig):
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"El email {db_lead.email} ya está registrado."
+                )
+            raise HTTPException(
+                status_code=500,
+                detail="Ocurrió un error inesperado en el servidor."
+            )
 
     def get_lead_by_id(self, db: Session, lead_id: int):
         return self.select_by_id(Lead, db, lead_id)

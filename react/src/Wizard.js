@@ -1,5 +1,6 @@
 import * as React from "react";
 import { useState } from "react";
+import { Alert } from "@mui/material";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import CssBaseline from "@mui/material/CssBaseline";
@@ -19,6 +20,8 @@ import SubjectForm from "./components/SubjectForm";
 import Review from "./components/Review";
 import WizardFrame from "./WizardFrame";
 import { postLead, postLeadSubject } from "./services/api";
+import { studentSchema, subjectSchema } from "./forms/leadForm";
+import { Collapse } from "@mui/material";
 
 const steps = [
   "Registra tus datos",
@@ -57,6 +60,13 @@ export default function Wizard() {
   const WizardTheme = createTheme(getWizardTheme(mode));
   const defaultTheme = createTheme({ palette: { mode } });
   const [activeStep, setActiveStep] = React.useState(0);
+  const [axiosError, setAxiosError] = React.useState("");
+
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertContent, setAlertContent] = useState("TETETESTING");
+
+  const leadSchemas = [studentSchema, subjectSchema];
+
   // This code only runs on the client side, to determine the system color preference
   React.useEffect(() => {
     // Check if there is a preferred mode in localStorage
@@ -80,8 +90,15 @@ export default function Wizard() {
   const toggleCustomTheme = () => {
     setShowCustomTheme((prev) => !prev);
   };
-  const handleNext = () => {
-    setActiveStep(activeStep + 1);
+  const handleNext = async () => {
+    try {
+      setShowAlert(false);
+      await leadSchemas[activeStep].validate(leadData);
+      setActiveStep(activeStep + 1);
+    } catch (e) {
+      setAlertContent(e.message);
+      setShowAlert(true);
+    }
   };
   const handleBack = () => {
     setActiveStep(activeStep - 1);
@@ -101,16 +118,15 @@ export default function Wizard() {
         lead_id: resultLead.id,
         subject_id: leadData.subject.id,
         times_taken: leadData.times_taken,
-        enrollment_year: leadData.enrollment_year
-      }
-      let resultLeadSubject = await postLeadSubject(leadSubjectObj)
-      setLeadData({...leadData, lead_id: resultLeadSubject.lead_id})
-      
-      setActiveStep(activeStep + 1);
+        enrollment_year: leadData.enrollment_year,
+      };
+      let resultLeadSubject = await postLeadSubject(leadSubjectObj);
+      setLeadData({ ...leadData, lead_id: resultLeadSubject.lead_id });
 
+      setActiveStep(activeStep + 1);
     } catch (e) {
-      alert("Oops! Algo salió mal: " + e)
-      console.log(e)
+      setAxiosError(e.response.data.detail);
+      setActiveStep(activeStep + 1);
     }
   };
   return (
@@ -225,6 +241,11 @@ export default function Wizard() {
                 gap: { xs: 5, md: "none" },
               }}
             >
+              <Collapse in={showAlert}>
+                <Alert variant="outlined" severity="error">
+                  {alertContent}
+                </Alert>
+              </Collapse>
               <Stepper
                 id="mobile-stepper"
                 activeStep={activeStep}
@@ -251,14 +272,32 @@ export default function Wizard() {
                 ))}
               </Stepper>
               {activeStep === steps.length ? (
-                <Stack spacing={2} useFlexGap>
+                axiosError !== "" ? (<Stack spacing={2} useFlexGap>
+                  <Typography variant="h1">🙅🏻</Typography>
+                  <Typography variant="h5">Algo salió mal!</Typography>
+                  <Typography variant="body1" sx={{ color: "text.secondary" }}>{axiosError}
+                  </Typography>
+                  <Button
+                    onClick={() => {
+                      window.location.reload();
+                    }}
+                    variant="contained"
+                    sx={{
+                      alignSelf: "middle",
+                      width: { xs: "100%", sm: "auto" },
+                    }}
+                  >
+                    Intentar nuevamente
+                  </Button>
+                </Stack>) : (<Stack spacing={2} useFlexGap>
                   <Typography variant="h1">👍🏻</Typography>
                   <Typography variant="h5">Gracias por registrarte!</Typography>
                   <Typography variant="body1" sx={{ color: "text.secondary" }}>
                     Tu ID de alumno es
-                    <strong>&nbsp;#{leadData.lead_id}</strong>. Todavía quedan muchas cosas
-                    por mejorar tanto en front como en back pero creo que lo
-                    postulado demuestra mi conocimiento general. Saludos!
+                    <strong>&nbsp;#{leadData.lead_id}</strong>. Todavía quedan
+                    muchas cosas por mejorar tanto en front como en back pero
+                    creo que lo postulado demuestra mi conocimiento general.
+                    Saludos!
                   </Typography>
                   <Button
                     onClick={() => {
@@ -272,7 +311,8 @@ export default function Wizard() {
                   >
                     Registrar nuevo alumno
                   </Button>
-                </Stack>
+                </Stack>)
+                
               ) : (
                 <React.Fragment>
                   {getStepContent(activeStep)}

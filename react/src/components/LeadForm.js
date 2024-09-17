@@ -22,6 +22,7 @@ export default function LeadForm({leadData, setLeadData}) {
           Nombre Completo
         </FormLabel>
         <OutlinedInput
+          error
           id="full_name"
           name="full_name"
           type="full_name"
@@ -55,7 +56,7 @@ export default function LeadForm({leadData, setLeadData}) {
           id="phone"
           name="phone"
           type="phone"
-          placeholder="+5492804539160"
+          placeholder="5492804539160"
           autoComplete="shipping phone"
           required
           size="small"
