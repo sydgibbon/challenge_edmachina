@@ -22,7 +22,6 @@ export default function LeadForm({leadData, setLeadData}) {
           Nombre Completo
         </FormLabel>
         <OutlinedInput
-          error
           id="full_name"
           name="full_name"
           type="full_name"
