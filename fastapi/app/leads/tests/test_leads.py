@@ -4,6 +4,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from app.main import app
 from app.db import Base, get_db
+from app.leads.fixtures.data import INITIAL_DATA
 
 # Configuración de la base de datos para pruebas
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
@@ -23,39 +24,42 @@ app.dependency_overrides[get_db] = override_get_db
 client = TestClient(app)
 
 def test_create_career():
-    response = client.post("/careers/", json=career_data[0])
+    test_career=INITIAL_DATA.get("careers")[0]
+    response = client.post("/careers/", json=test_career)
     assert response.status_code == 200
     data = response.json()
     assert data["name"] == "Jugador de LoL"
 
 def test_create_subject():
-    response = client.post("/subjects/", json=subject_data[0])
+    test_subject=INITIAL_DATA.get("subjects")[0]
+    response = client.post("/subjects/", json=test_subject)
     assert response.status_code == 200
     data = response.json()
+    print(data["course_duration"])
     assert data["name"] == "Griefing 1"
     assert data["course_duration"] == 20
-    assert data["enrollment_year"] == 2020
 
 def test_create_lead():
-    
-    response = client.post("/leads/", json=lead_data[0])
+    test_lead=INITIAL_DATA.get("leads")[0]
+    test_lead["email"] = "syd@test.com"
+    print(test_lead)
+    response = client.post("/leads/", json=test_lead)
     assert response.status_code == 200
     data = response.json()
     assert data["full_name"] == "Sydney Gibbon"
-    assert data["email"] == "sydneygibbon@edmachina.com"
-    assert len(data["subjects"]) == 1
+    assert data["email"] == "syd@test.com"
 
 def test_create_leads_subjects():
-    
-    response = client.post("/leads/", json=lead_data[0])
-    assert response.status_code == 200
+    test_lead_subject=INITIAL_DATA.get("leads_subjects")[0]
+    test_lead_subject["subject_id"] = 3
+    response = client.post("/leads_subjects/", json=test_lead_subject)
     data = response.json()
-    assert data["full_name"] == "Sydney Gibbon"
-    assert data["email"] == "sydneygibbon@edmachina.com"
-    assert len(data["subjects"]) == 1
+    print(data)
+    assert response.status_code == 200
+    assert data["enrollment_year"] == 2020
+    assert data["times_taken"] == 3
 
 def test_get_career_by_id():
-    
     response = client.get(f"/careers/{1}")
     assert response.status_code == 200
     data = response.json()
@@ -63,7 +67,6 @@ def test_get_career_by_id():
     assert data["name"] == "Jugador de LoL"
 
 def test_get_subject_by_id():
-    
     # Ahora probamos obtener el subject por su ID
     response = client.get(f"/subjects/{1}")
     assert response.status_code == 200
